@@ -1,29 +1,42 @@
-function nodeStruct = genGpxStruct(nodeParsedStruct,nodeStructIn,parentFieldname)
+function [nodeStruct,countersOut] = genGpxStruct(nodeParsedStruct,nodeStructIn,parentFieldname,countersIn)
+% TODO: move to gpxload in the end
 
 % Initialize
 nodeStruct      = nodeStructIn;
+countersOut     = countersIn;
 
 action_addfield	= false;
 action_savedata	= false;
 
 % Actions depend on node type
 switch nodeParsedStruct.Name
-    case {'gpx','metadata','link','trk','name'}
+    case {'gpx','metadata','link','name'}
         action_addfield	= true;
     case '#text'
         switch nodeParsedStruct.ParentName
-            case {'gpx','metadata','link','trk','name'}
+            case {'gpx','metadata','link','name'}
                 action_savedata	= true;
+            otherwise
+                % TODO: manage data differently
         end
+    case 'trk'
+        % TODO
+        countersOut.trk     = countersOut.trk + 1;
     case 'trkseg'
         % TODO
+        countersOut.trkseg  = countersOut.trkseg + 1;
     case 'trkpt'
         % TODO
+        countersOut.trkpt   = countersOut.trkpt + 1;
 end
 
 %% Actions
 % Determine next parent fieldname
-nextParentFieldname = [parentFieldname '.' nodeParsedStruct.Name];
+if isempty(parentFieldname)
+    nextParentFieldname = nodeParsedStruct.Name;
+else
+    nextParentFieldname = [parentFieldname '.' nodeParsedStruct.Name];
+end
 
 % Add field to nodeStruct
 if action_addfield
@@ -45,14 +58,18 @@ end
 
 % Manage data
 if action_savedata
-    nodeParsedStruct.Data
+    % Generate cell for setfield
+    tmp_setfield_cell = split(parentFieldname,'.',2);
+    
+    % Assign data
+    nodeStruct = setfield(nodeStruct,tmp_setfield_cell{:},nodeParsedStruct.Data);
 end
 
 %% Recurse over children
 % Loop over children
 currentNodeChildren = nodeParsedStruct.Children;
 for i_child = 1:length(currentNodeChildren)
-    nodeStruct = genGpxStruct(currentNodeChildren(i_child),nodeStruct,nextParentFieldname);
+    [nodeStruct,countersOut] = genGpxStruct(currentNodeChildren(i_child),nodeStruct,nextParentFieldname,countersOut);
 end
 
 end

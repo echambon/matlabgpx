@@ -9,7 +9,11 @@ nodeParsedStruct = gpxload('AC2019_J1_M1_debug.gpx');
 gpxstruct   = genGpxStructFieldnames(nodeParsedStruct,{},'root');
 % gpxstruct2  = genGpxFlatNodes(nodeParsedStruct,{});
 
-gpxstruct3 = genGpxStruct(nodeParsedStruct,struct(),'');
+counters.trk    = 0;
+counters.trkseg = 0;
+counters.trkpt  = 0;
+
+[gpxstruct3,countersDebug] = genGpxStruct(nodeParsedStruct,struct(),'',counters);
 % gpxstruct
 
 % TODO:

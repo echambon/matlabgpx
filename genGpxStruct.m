@@ -1,27 +1,31 @@
-function nodeStruct = genGpxStruct(nodeParsedStruct,nodeStructIn,parentFieldname)
+function [nodeStruct,countersOut] = genGpxStruct(nodeParsedStruct,nodeStructIn,parentFieldname,countersIn)
 % TODO: move to gpxload in the end
 
 % Initialize
 nodeStruct      = nodeStructIn;
+countersOut     = countersIn;
 
 action_addfield	= false;
-action_savedata	= false;
+% action_savedata	= false;
 
 % Actions depend on node type
 switch nodeParsedStruct.Name
-    case {'gpx','metadata','link','trk','name'}
+    case {'gpx','metadata','link'}
         action_addfield	= true;
+    case 'name'
+        % TODO
     case '#text'
-        switch nodeParsedStruct.ParentName
-            case {'gpx','metadata','link','trk','name'}
-                action_savedata	= true;
-            otherwise
-                % TODO: manage data differently
-        end
-    case 'trkseg'
+        % TODO: review
+%         switch nodeParsedStruct.ParentName
+%             % TODO: not robust to multiple trk
+%             case {'gpx','metadata','link','name'}
+%                 % action_savedata	= true;
+%             otherwise
+%                 % TODO: manage data differently
+%         end
+    case {'trk','trkseg','trkpt'}
         % TODO
-    case 'trkpt'
-        % TODO
+        countersOut.(nodeParsedStruct.Name) = countersOut.(nodeParsedStruct.Name) + 1;
 end
 
 %% Actions
@@ -51,19 +55,19 @@ if action_addfield
 end
 
 % Manage data
-if action_savedata
-    % Generate cell for setfield
-    tmp_setfield_cell = split(parentFieldname,'.',2);
-    
-    % Assign data
-    nodeStruct = setfield(nodeStruct,tmp_setfield_cell{:},nodeParsedStruct.Data);
-end
+% if action_savedata
+%     % Generate cell for setfield
+%     tmp_setfield_cell = split(parentFieldname,'.',2);
+%     
+%     % Assign data
+%     nodeStruct = setfield(nodeStruct,tmp_setfield_cell{:},nodeParsedStruct.Data);
+% end
 
 %% Recurse over children
 % Loop over children
 currentNodeChildren = nodeParsedStruct.Children;
 for i_child = 1:length(currentNodeChildren)
-    nodeStruct = genGpxStruct(currentNodeChildren(i_child),nodeStruct,nextParentFieldname);
+    [nodeStruct,countersOut] = genGpxStruct(currentNodeChildren(i_child),nodeStruct,nextParentFieldname,countersOut);
 end
 
 end
