@@ -1,5 +1,6 @@
 clear; close all; restoredefaultpath;
-addpath('inc');
+addpath('../src');
+addpath('../inc');
 
 nodeParsedStruct = gpxload('AC2019_J1_M1_debug.gpx');
 
