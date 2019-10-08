@@ -1,0 +1,16 @@
+function nodeStruct = makeStructFromNode(theNode)
+% Create structure of node info.
+
+nodeStruct = struct(                                        ...
+   'Name', char(theNode.getNodeName),                       ...
+   'ParentName', char(theNode.getParentNode.getNodeName),   ...
+   'Attributes', parseAttributes(theNode),                  ...
+   'Data', '',                                              ...
+   'Children', parseChildNodes(theNode));
+
+if any(strcmp(methods(theNode), 'getData'))
+   nodeStruct.Data = char(theNode.getData); 
+else
+   nodeStruct.Data = '';
+end
+end
