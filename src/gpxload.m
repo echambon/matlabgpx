@@ -11,6 +11,7 @@ catch
 end
 
 %% Recurse over child nodes
+% TODO: try to delete this part later because this consumes a lot of ressource and could be done in genGpxStruct
 try
     tmpStructNodes = parseChildNodes(tree);
 catch
@@ -18,7 +19,10 @@ catch
     error('matlabgpx:ParsingError','Error thrown while parsing GPX file.');
 end
 
-%% Debug
-gpxstruct = tmpStructNodes;
+%% Execute genGpxStruct
+counters.trk    = 0;
+counters.trkseg = 0;
+counters.trkpt  = 0;
+[gpxstruct,~] = genGpxStruct(tmpStructNodes,struct(),'',counters);
 
 end
