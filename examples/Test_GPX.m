@@ -15,7 +15,7 @@ counters.trkseg = 0;
 counters.trkpt  = 0;
 
 [gpxstruct3,countersDebug] = genGpxStruct(nodeParsedStruct,struct(),'',counters);
-% gpxstruct
+gpxstruct3.gpx.trk(1).trkseg(1)
 
 % TODO:
 % counters for:

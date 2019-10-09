@@ -21,16 +21,15 @@ if contains(parentFieldname,'trk')
                              '()',{countersIn.trk,1},...
                              '.',nodeParsedStruct.Name);
     if contains(parentFieldname,'trkseg')
-        my_substruct = substruct('()',{1,1},...
-                                 '.','trk',...
-                                 '()',{countersIn.trk,1},...
-                                 '.','trkseg',...
-                                 '()',{countersIn.trkseg,1},...
-                                 '.',nodeParsedStruct.Name);
-        % if contains(parentFieldname,'trkpt')
-            % unchanged substruct
+        % Updating substruct
+        my_substruct(end).subs = 'trkseg';
+        my_substruct(end+1) = substruct('()',{countersIn.trkseg,1});
+        my_substruct(end+1) = substruct('.',nodeParsedStruct.Name);
+        if contains(parentFieldname,'trkpt')
             % elements will be stored in trk(i).trkseg(j).lat/lon/ele/etc.
-        % end
+            % Updating substruct
+            my_substruct(end+1) = substruct('()',{countersIn.trkpt,1});
+        end
     end
 end
 
@@ -49,6 +48,11 @@ switch nodeParsedStruct.Name
     case '#text'
         if contains(parentFieldname,'trk')
             action_substruct_savedata = true;
+            if ~contains(parentFieldname,'trkpt')
+            	my_substruct(end).subs = nodeParsedStruct.ParentName;
+            else
+            	my_substruct(end-1).subs = nodeParsedStruct.ParentName;
+            end
         else
             action_savedata	= true;
         end
@@ -122,7 +126,26 @@ if action_savedata
 end
 
 if action_substruct_savedata
-    % TODO : use substruct
+    % TODO: support wpt and rte
+    % Generate cell for setfield but halted just before trk
+    tmp_trk_find = strfind(parentFieldname,'.trk');
+    tmp_setfield_cell = split(parentFieldname(1:tmp_trk_find(1)-1),'.',2);
+    
+    % Get field at the setfield level
+    tmp_current_field = getfield(nodeStruct,tmp_setfield_cell{:});
+    
+    % Assign temporary structure
+    try
+        % Try converting supported nodes
+        tmp_data = convertData(nodeParsedStruct.ParentName,nodeParsedStruct.Data);
+        tmp_current_field = subsasgn(tmp_current_field,my_substruct,tmp_data);
+    catch
+        % In case of error, just fill a cell
+        tmp_current_field = subsasgn(tmp_current_field,my_substruct,{nodeParsedStruct.Data});
+    end
+    
+    % Re-assign to nodeStruct
+    nodeStruct = setfield(nodeStruct,tmp_setfield_cell{:},tmp_current_field);
 end
 
 %% Recurse over children
@@ -132,4 +155,17 @@ for i_child = 1:length(currentNodeChildren)
     [nodeStruct,countersOut] = genGpxStruct(currentNodeChildren(i_child),nodeStruct,nextParentFieldname,countersOut);
 end
 
+end
+
+function cdata = convertData(nodename,data)
+switch nodename
+    case {'name','cmt','desc','src','link','type'}
+        cdata = data;
+    case 'time'
+        % TODO: not working (throws an error even if correctly converted to datetime object)
+        % NB: working if put between {} ...
+        cdata = datetime(data,'InputFormat','yyyy-MM-dd''T''HH:mm:ss.SSS''Z''');
+    otherwise
+        cdata = str2double(data);
+end
 end
