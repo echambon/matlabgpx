@@ -1,6 +1,7 @@
 function [nodeStruct,countersOut] = genGpxStruct(nodeParsedStruct,nodeStructIn,parentFieldname,countersIn)
 % TODO: move to gpxload in the end
 % TODO: also review parseChildNodes code not to create the intermediate Name,Attributes,etc. structures but directly execute this code 
+% TODO: lat lon are attributes in trkpt, not supported yet ...
 
 % Initialize
 nodeStruct      = nodeStructIn;
@@ -10,6 +11,7 @@ action_addfield             = false;
 action_substruct_addfield   = false;
 action_savedata             = false;
 action_substruct_savedata   = false;
+action_substruct_latlon     = false;
 
 my_substruct = struct();
 
@@ -64,7 +66,8 @@ switch nodeParsedStruct.Name
         countersOut.trkseg  = countersOut.trkseg + 1;
         countersOut.trkpt   = 0;
     case 'trkpt'
-        countersOut.trkpt   = countersOut.trkpt + 1;
+        countersOut.trkpt       = countersOut.trkpt + 1;
+        action_substruct_latlon = true;
 end
 
 %% Actions
@@ -146,6 +149,10 @@ if action_substruct_savedata
     
     % Re-assign to nodeStruct
     nodeStruct = setfield(nodeStruct,tmp_setfield_cell{:},tmp_current_field);
+end
+
+if action_substruct_latlon
+    % TODO
 end
 
 %% Recurse over children
