@@ -14,16 +14,19 @@ action_substruct_savedata   = false;
 my_substruct = struct();
 
 % Detect if we are at the trk, trk.trkseg or trk.trkseg.trkpt level
+% TODO: rte and wpt support
 if contains(parentFieldname,'trk')
     my_substruct = substruct('()',{1,1},...
                              '.','trk',...
-                             '()',{countersIn.trk,1});
+                             '()',{countersIn.trk,1},...
+                             '.',nodeParsedStruct.Name);
     if contains(parentFieldname,'trkseg')
         my_substruct = substruct('()',{1,1},...
                                  '.','trk',...
                                  '()',{countersIn.trk,1},...
                                  '.','trkseg',...
-                                 '()',{countersIn.trkseg,1});
+                                 '()',{countersIn.trkseg,1},...
+                                 '.',nodeParsedStruct.Name);
         % if contains(parentFieldname,'trkpt')
             % unchanged substruct
             % elements will be stored in trk(i).trkseg(j).lat/lon/ele/etc.
@@ -33,10 +36,14 @@ end
 
 % Actions depend on node type
 switch nodeParsedStruct.Name
-    case {'gpx','metadata','link','desc','name','author','copyright','time'}
+    case {'gpx','metadata','link','desc','name','author','copyright'}
         if contains(parentFieldname,'trk')
             action_substruct_addfield = true;
         else
+            action_addfield	= true;
+        end
+    case 'time'
+        if ~contains(parentFieldname,'trk')
             action_addfield	= true;
         end
     case '#text'
@@ -83,7 +90,26 @@ if action_addfield
 end
 
 if action_substruct_addfield
-    % TODO : use substruct
+    % TODO: support wpt and rte
+    % Generate cell for setfield but halted just before trk
+    tmp_trk_find = strfind(nextParentFieldname,'.trk');
+    tmp_setfield_cell = split(nextParentFieldname(1:tmp_trk_find(1)-1),'.',2);
+    
+    % Get field at the setfield level
+    tmp_current_field = getfield(nodeStruct,tmp_setfield_cell{:});
+    
+    % Store attributes temporary structure to be assigned
+    tmp_attributes = nodeParsedStruct.Attributes;
+    tmp_attributes_struct = struct();
+    for i_attribute = 1:length(tmp_attributes)
+        tmp_attributes_struct.(tmp_attributes(i_attribute).Name) = tmp_attributes(i_attribute).Value;
+    end
+    
+    % Assign temporary structure
+    tmp_current_field = subsasgn(tmp_current_field,my_substruct,tmp_attributes_struct);
+    
+    % Re-assign to nodeStruct
+    nodeStruct = setfield(nodeStruct,tmp_setfield_cell{:},tmp_current_field);
 end
 
 % Manage data
