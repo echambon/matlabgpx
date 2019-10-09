@@ -11,6 +11,26 @@ action_substruct_addfield   = false;
 action_savedata             = false;
 action_substruct_savedata   = false;
 
+my_substruct = struct();
+
+% Detect if we are at the trk, trk.trkseg or trk.trkseg.trkpt level
+if contains(parentFieldname,'trk')
+    my_substruct = substruct('()',{1,1},...
+                             '.','trk',...
+                             '()',{countersIn.trk,1});
+    if contains(parentFieldname,'trkseg')
+        my_substruct = substruct('()',{1,1},...
+                                 '.','trk',...
+                                 '()',{countersIn.trk,1},...
+                                 '.','trkseg',...
+                                 '()',{countersIn.trkseg,1});
+        % if contains(parentFieldname,'trkpt')
+            % unchanged substruct
+            % elements will be stored in trk(i).trkseg(j).lat/lon/ele/etc.
+        % end
+    end
+end
+
 % Actions depend on node type
 switch nodeParsedStruct.Name
     case {'gpx','metadata','link','desc','name','author','copyright','time'}
