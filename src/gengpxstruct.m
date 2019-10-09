@@ -1,4 +1,4 @@
-function [nodeStruct,countersOut] = genGpxStruct(nodeParsedStruct,nodeStructIn,parentFieldname,countersIn)
+function [nodeStruct,countersOut] = gengpxstruct(nodeParsedStruct,nodeStructIn,parentFieldname,countersIn)
 % TODO: move to gpxload in the end
 % TODO: also review parseChildNodes code not to create the intermediate Name,Attributes,etc. structures but directly execute this code 
 % TODO: lat lon are attributes in trkpt, not supported yet ...
@@ -159,7 +159,7 @@ end
 % Loop over children
 currentNodeChildren = nodeParsedStruct.Children;
 for i_child = 1:length(currentNodeChildren)
-    [nodeStruct,countersOut] = genGpxStruct(currentNodeChildren(i_child),nodeStruct,nextParentFieldname,countersOut);
+    [nodeStruct,countersOut] = gengpxstruct(currentNodeChildren(i_child),nodeStruct,nextParentFieldname,countersOut);
 end
 
 end

@@ -23,6 +23,6 @@ end
 counters.trk    = 0;
 counters.trkseg = 0;
 counters.trkpt  = 0;
-[gpxstruct,~] = genGpxStruct(tmpStructNodes,struct(),'',counters);
+[gpxstruct,~] = gengpxstruct(tmpStructNodes,struct(),'',counters);
 
 end
