@@ -1,31 +1,39 @@
 function [nodeStruct,countersOut] = genGpxStruct(nodeParsedStruct,nodeStructIn,parentFieldname,countersIn)
 % TODO: move to gpxload in the end
+% TODO: also review parseChildNodes code not to create the intermediate Name,Attributes,etc. structures but directly execute this code 
 
 % Initialize
 nodeStruct      = nodeStructIn;
 countersOut     = countersIn;
 
-action_addfield	= false;
-% action_savedata	= false;
+action_addfield             = false;
+action_substruct_addfield   = false;
+action_savedata             = false;
+action_substruct_savedata   = false;
 
 % Actions depend on node type
 switch nodeParsedStruct.Name
-    case {'gpx','metadata','link'}
-        action_addfield	= true;
-    case 'name'
-        % TODO
+    case {'gpx','metadata','link','desc','name','author','copyright','time'}
+        if contains(parentFieldname,'trk')
+            action_substruct_addfield = true;
+        else
+            action_addfield	= true;
+        end
     case '#text'
-        % TODO: review
-%         switch nodeParsedStruct.ParentName
-%             % TODO: not robust to multiple trk
-%             case {'gpx','metadata','link','name'}
-%                 % action_savedata	= true;
-%             otherwise
-%                 % TODO: manage data differently
-%         end
-    case {'trk','trkseg','trkpt'}
-        % TODO
-        countersOut.(nodeParsedStruct.Name) = countersOut.(nodeParsedStruct.Name) + 1;
+        if contains(parentFieldname,'trk')
+            action_substruct_savedata = true;
+        else
+            action_savedata	= true;
+        end
+    case 'trk'
+        countersOut.trk     = countersOut.trk + 1;
+        countersOut.trkseg  = 0;
+        countersOut.trkpt   = 0;
+    case 'trkseg'
+        countersOut.trkseg  = countersOut.trkseg + 1;
+        countersOut.trkpt   = 0;
+    case 'trkpt'
+        countersOut.trkpt   = countersOut.trkpt + 1;
 end
 
 %% Actions
@@ -54,14 +62,22 @@ if action_addfield
     nodeStruct = setfield(nodeStruct,tmp_setfield_cell{:},tmp_attributes_struct);
 end
 
+if action_substruct_addfield
+    % TODO : use substruct
+end
+
 % Manage data
-% if action_savedata
-%     % Generate cell for setfield
-%     tmp_setfield_cell = split(parentFieldname,'.',2);
-%     
-%     % Assign data
-%     nodeStruct = setfield(nodeStruct,tmp_setfield_cell{:},nodeParsedStruct.Data);
-% end
+if action_savedata
+    % Generate cell for setfield
+    tmp_setfield_cell = split(parentFieldname,'.',2);
+    
+    % Assign data
+    nodeStruct = setfield(nodeStruct,tmp_setfield_cell{:},nodeParsedStruct.Data);
+end
+
+if action_substruct_savedata
+    % TODO : use substruct
+end
 
 %% Recurse over children
 % Loop over children
