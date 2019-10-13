@@ -152,7 +152,32 @@ if action_substruct_savedata
 end
 
 if action_substruct_latlon
-    % TODO
+    % TODO: support wpt and rte
+    % Generate cell for setfield but halted just before trk
+    tmp_trk_find = strfind(nextParentFieldname,'.trk');
+    tmp_setfield_cell = split(nextParentFieldname(1:tmp_trk_find(1)-1),'.',2);
+    
+    % Get field at the setfield level
+    tmp_current_field = getfield(nodeStruct,tmp_setfield_cell{:});
+    
+    % Store attributes temporary structure to be assigned
+    tmp_attributes = nodeParsedStruct.Attributes;
+    
+    for i_attribute = 1:length(tmp_attributes)
+        % Update substruct subs to attribute name
+        my_substruct(end).subs = tmp_attributes(i_attribute).Name;
+        
+        try
+            % Try converting supported nodes
+            tmp_data = convertData(nodeParsedStruct.ParentName,tmp_attributes(i_attribute).Value);
+            tmp_current_field = subsasgn(tmp_current_field,my_substruct,tmp_data);
+        catch
+            tmp_current_field = subsasgn(tmp_current_field,my_substruct,{tmp_attributes(i_attribute).Value});
+        end
+    end
+    
+    % Re-assign to nodeStruct
+    nodeStruct = setfield(nodeStruct,tmp_setfield_cell{:},tmp_current_field);
 end
 
 %% Recurse over children

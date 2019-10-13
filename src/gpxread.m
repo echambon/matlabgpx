@@ -1,4 +1,4 @@
-function gpxstruct = gpxload(gpxfile)
+function gpxstruct = gpxread(gpxfile)
 %GPXLOAD Summary of this function goes here
 %   Detailed explanation goes here
 
