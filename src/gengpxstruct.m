@@ -163,9 +163,12 @@ if action_substruct_latlon
     % Store attributes temporary structure to be assigned
     tmp_attributes = nodeParsedStruct.Attributes;
     
+    % Add field for trkpt counter support
+    my_substruct(end+1) = substruct('()',{countersOut.trkpt,1});
+    
     for i_attribute = 1:length(tmp_attributes)
         % Update substruct subs to attribute name
-        my_substruct(end).subs = tmp_attributes(i_attribute).Name;
+        my_substruct(end-1).subs = tmp_attributes(i_attribute).Name;
         
         try
             % Try converting supported nodes
